@@ -9,6 +9,8 @@ import helmet from "helmet";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import mongoSanitize from "express-mongo-sanitize";
+import { requestLogger } from "./middleware/requestLogger.middleware";
+import { register } from "./utils/metrics";
 
 const app = express();
 
@@ -32,7 +34,7 @@ app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(morgan("dev"));
 app.use(mongoSanitize());
-
+app.use(requestLogger);
 // 2. DEBUG ROUTE: Proves the server is reading this exact file
 app.get("/debug-ping", (req: Request, res: Response) => {
   res.json({ message: "SUCCESS: Server is reading the new app.ts file!" });
@@ -63,7 +65,15 @@ try {
 app.get("/health", (req: Request, res: Response) => {
   res.status(200).json({ status: "OK", environment: env.NODE_ENV });
 });
-
+// Prometheus Metrics Endpoint
+app.get("/metrics", async (req: Request, res: Response) => {
+  try {
+    res.set("Content-Type", register.contentType);
+    res.end(await register.metrics());
+  } catch (error) {
+    res.status(500).end();
+  }
+});
 // 5. Feature Routes
 app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/auth", authRoutes);
