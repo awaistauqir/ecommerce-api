@@ -19,6 +19,7 @@ const envSchema = z.object({
     .min(16, "JWT_REFRESH_SECRET must be at least 16 characters"),
   ACCESS_TOKEN_EXPIRY: z.string().default("15m"),
   REFRESH_TOKEN_EXPIRY: z.string().default("7d"),
+  REDIS_URL: z.string().default("redis://127.0.0.1:6379"),
 });
 
 // 3. Parse and validate process.env

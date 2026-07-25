@@ -1,0 +1,17 @@
+#command to install redis in docker container
+
+docker run -d -p 6379:6379 --name redis-cache redis:alpine
+
+#command to create a migration file
+npx migrate-mongo init
+
+#command to create a migration file with name
+npx migrate-mongo create add-default-sku-to-products
+
+#command to run migration file
+npx migrate-mongo up
+
+#command to rollback migration file
+npx migrate-mongo down
+
+

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { productController } from "./products.controller";
 import { authorize, protect } from "../../middleware/auth.middleware";
+import { cache } from "../../middleware/cache.middleware";
 
 const router = Router();
 
@@ -56,7 +57,7 @@ router.post("/", protect, productController.createProduct);
  *                 count: { type: integer }
  *                 data: { type: array, items: { type: object } }
  */
-router.get("/", productController.getAllProducts);
+router.get("/", cache(60), productController.getAllProducts);
 
 export const productRoutes = router;
 export default router;
