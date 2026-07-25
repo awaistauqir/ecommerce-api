@@ -33,7 +33,12 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(morgan("dev"));
-app.use(mongoSanitize());
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (req.body) mongoSanitize.sanitize(req.body);
+  if (req.params) mongoSanitize.sanitize(req.params);
+  if (req.query) mongoSanitize.sanitize(req.query);
+  next();
+});
 app.use(requestLogger);
 // 2. DEBUG ROUTE: Proves the server is reading this exact file
 app.get("/debug-ping", (req: Request, res: Response) => {
