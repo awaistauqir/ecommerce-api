@@ -11,10 +11,19 @@ import cookieParser from "cookie-parser";
 import mongoSanitize from "express-mongo-sanitize";
 import { requestLogger } from "./middleware/requestLogger.middleware";
 import { register } from "./utils/metrics";
+import { webhookRoutes } from "./features/webhooks/webhook.routes";
+import { orderRoutes } from "./features/orders/orders.routes";
 
 const app = express();
 
 // 1. Core Middleware
+app.use("/api/v1/webhooks", express.raw({ type: "application/json" }));
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (req.originalUrl.startsWith("/api/v1/webhooks")) {
+    (req as any).rawBody = req.body;
+  }
+  next();
+});
 app.use(express.json({ limit: "10kb" }));
 app.use(helmet());
 
@@ -82,6 +91,8 @@ app.get("/metrics", async (req: Request, res: Response) => {
 // 5. Feature Routes
 app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/orders", orderRoutes);
+app.use("/api/v1/webhooks", webhookRoutes);
 
 // 6. 404 Handler (with debug log)
 app.use((req: Request, res: Response) => {

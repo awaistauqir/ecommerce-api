@@ -15,3 +15,10 @@ npx migrate-mongo up
 npx migrate-mongo down
 
 
+#stripe listen command
+stripe login
+copy the link provided by stripe login and paste it in your browser and login to your stripe account
+paste the generated webhook secret key to your .env file in STRIPE_WEBHOOK_SECRET
+
+#stripe command to listen to webhook events in development mode
+stripe listen --forward-to localhost:3000/api/v1/webhooks/stripe

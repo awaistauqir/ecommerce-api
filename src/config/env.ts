@@ -20,6 +20,9 @@ const envSchema = z.object({
   ACCESS_TOKEN_EXPIRY: z.string().default("15m"),
   REFRESH_TOKEN_EXPIRY: z.string().default("7d"),
   REDIS_URL: z.string().default("redis://127.0.0.1:6379"),
+  STRIPE_SECRET_KEY: z.string().min(1, "STRIPE_SECRET_KEY is required"),
+  STRIPE_WEBHOOK_SECRET: z.string().min(1, "STRIPE_WEBHOOK_SECRET is required"),
+  FRONTEND_URL: z.string().url().default("http://localhost:5173"),
 });
 
 // 3. Parse and validate process.env
