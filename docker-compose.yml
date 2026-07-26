@@ -1,0 +1,49 @@
+version: "3.8"
+
+services:
+  # 1. The Node.js API
+  api:
+    build:
+      context: .
+      target: production # Use the production stage from our Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development # Keep as dev for local testing, change to production for real deploy
+      - PORT=3000
+      - MONGO_URI=mongodb://mongo:27017/ecommerce_db
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=super_secret_jwt_key_for_docker
+      - JWT_REFRESH_SECRET=super_secret_refresh_key_for_docker
+      - STRIPE_SECRET_KEY=sk_test_your_stripe_key
+      - STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
+      - FRONTEND_URL=http://localhost:5173
+    depends_on:
+      - mongo
+      - redis
+    volumes:
+      # Optional: Mount local code for hot-reloading during development
+      # - .:/app
+      # - /app/node_modules
+    command: sh -c "npm run build && node dist/index.js" # Rebuilds on container start
+
+  # 2. MongoDB Database
+  mongo:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db # Persist data even if container restarts
+
+  # 3. Redis Cache
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+# Define persistent volumes
+volumes:
+  mongo_data:
+  redis_data:

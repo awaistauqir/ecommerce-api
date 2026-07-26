@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { orderService, stripe } from "./orders.service";
 import { env } from "../../config/env";
 import { logger } from "../../utils/logger";
+import { IOrder } from "./orders.model";
 
 export class OrderController {
   // POST /api/v1/orders/checkout
@@ -54,15 +55,10 @@ export class OrderController {
   // POST /api/v1/webhooks/stripe
   async handleStripeWebhook(req: Request, res: Response, next: NextFunction) {
     const sig = req.headers["stripe-signature"] as string;
-
-    // ⚠️ CRITICAL: Stripe sends the raw body, not parsed JSON.
-    // We need the raw buffer to verify the signature.
     const rawBody = (req as any).rawBody;
 
     let event;
-
     try {
-      // Verify the webhook signature (prevents hackers from faking events)
       event = stripe.webhooks.constructEvent(
         rawBody,
         sig,
@@ -78,7 +74,6 @@ export class OrderController {
 
     logger.info(`📩 Received Stripe event: ${event.type}`);
 
-    // Handle the event
     try {
       switch (event.type) {
         case "checkout.session.completed":
@@ -90,9 +85,21 @@ export class OrderController {
         default:
           logger.info(`Unhandled event type: ${event.type}`);
       }
-
-      // Always return 200 to Stripe immediately
       res.status(200).json({ received: true });
+    } catch (error) {
+      next(error);
+    }
+  }
+  async getAllOrders(req: Request, res: Response, next: NextFunction) {
+    try {
+      // Note: We will protect this route with the 'authorize("admin")' middleware
+      const orders = await orderService.getAllOrders();
+
+      res.status(200).json({
+        success: true,
+        count: orders.length,
+        data: orders,
+      });
     } catch (error) {
       next(error);
     }

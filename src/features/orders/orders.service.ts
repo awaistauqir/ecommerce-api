@@ -84,29 +84,37 @@ export class OrderService {
    * Handle successful payment from Stripe Webhook
    */
   async handlePaymentSuccess(sessionId: string): Promise<IOrder> {
-    // 1. Retrieve the session from Stripe to verify it
     const session = await stripe.checkout.sessions.retrieve(sessionId);
-
-    // 2. Find our order
     const order = await Order.findOne({ stripeSessionId: sessionId });
+
     if (!order) {
       throw new Error(`Order not found for session ${sessionId}`);
     }
 
-    // 3. Prevent duplicate processing (idempotency)
+    // Idempotency check: Prevent processing the same webhook twice
     if (order.status === "paid") {
       logger.warn(`Order ${order._id} already marked as paid. Skipping.`);
       return order;
     }
 
-    // 4. Update order status
+    // 🚀 NEW: Reduce stock for each item in the order
+    for (const item of order.items) {
+      await Product.findByIdAndUpdate(
+        item.product,
+        { $inc: { stock: -item.quantity } }, // Safely decrement stock
+        { new: true },
+      );
+    }
+    logger.info(
+      `📦 Stock reduced for ${order.items.length} items in order ${order._id}`,
+    );
+
+    // Update order status
     order.status = "paid";
     order.stripePaymentIntentId = session.payment_intent as string;
     await order.save();
 
-    // 5. TODO: Reduce product stock (we'll add this in a later step)
     logger.info(`💰 Order ${order._id} marked as PAID`);
-
     return order;
   }
 
@@ -115,6 +123,16 @@ export class OrderService {
    */
   async getUserOrders(userId: string): Promise<IOrder[]> {
     return await Order.find({ user: userId }).sort({ createdAt: -1 });
+  }
+
+  /**
+   * Get all orders (Admin only)
+   */
+  async getAllOrders(): Promise<IOrder[]> {
+    // Populate the user field so the admin can see who bought what
+    return await Order.find()
+      .populate("user", "name email")
+      .sort({ createdAt: -1 });
   }
 }
 
