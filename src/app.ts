@@ -13,6 +13,8 @@ import { requestLogger } from "./middleware/requestLogger.middleware";
 import { register } from "./utils/metrics";
 import { webhookRoutes } from "./features/webhooks/webhook.routes";
 import { orderRoutes } from "./features/orders/orders.routes";
+import { logger } from "./utils/logger";
+import path from "path";
 
 const app = express();
 
@@ -25,6 +27,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 app.use(express.json({ limit: "10kb" }));
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 app.use(helmet());
 
 // CORS: Configure exactly who can talk to your API
@@ -104,13 +107,35 @@ app.use((req: Request, res: Response) => {
 });
 
 // 7. Global Error Handler
+// Global Error Handler
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error("🔥 Error:", err.message);
-  res.status(500).json({
+  // Log the full error internally (for debugging)
+  logger.error(
+    {
+      err,
+      method: req.method,
+      url: req.originalUrl,
+      ip: req.ip,
+    },
+    "Unhandled Error",
+  );
+
+  // Determine the status code (default to 500)
+  const statusCode = (err as any).statusCode || 500;
+
+  // Build the response
+  const errorResponse: any = {
     success: false,
-    message: "Internal Server Error",
-    error: env.NODE_ENV === "development" ? err.message : undefined,
-  });
+    message: statusCode === 500 ? "Internal Server Error" : err.message,
+  };
+
+  // Only include stack trace in development
+  if (env.NODE_ENV === "development") {
+    errorResponse.stack = err.stack;
+    errorResponse.error = err.message;
+  }
+
+  res.status(statusCode).json(errorResponse);
 });
 
 export default app;

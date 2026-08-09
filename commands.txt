@@ -22,3 +22,24 @@ paste the generated webhook secret key to your .env file in STRIPE_WEBHOOK_SECRE
 
 #stripe command to listen to webhook events in development mode
 stripe listen --forward-to localhost:3000/api/v1/webhooks/stripe
+
+#command to run redis in docker container
+docker start redis-cache
+
+#command to stop redis in docker container
+docker stop redis-cache
+
+#command to remove redis in docker container
+docker rm redis-cache
+
+#command to run build and run the containeer
+docker compose up --build
+
+#shutdown the containeer
+docker compose down
+
+# Build the production image
+docker build -t ecommerce-api .
+
+# Run the container
+docker run -p 3000:3000 --env-file .env ecommerce-api

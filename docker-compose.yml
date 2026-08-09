@@ -21,11 +21,6 @@ services:
     depends_on:
       - mongo
       - redis
-    volumes:
-      # Optional: Mount local code for hot-reloading during development
-      # - .:/app
-      # - /app/node_modules
-    command: sh -c "npm run build && node dist/index.js" # Rebuilds on container start
 
   # 2. MongoDB Database
   mongo:
