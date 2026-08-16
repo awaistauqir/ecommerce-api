@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { User, IUser } from "./users.model";
-import { ConflictError } from "../../utils/errors";
+import { ConflictError, NotFoundError, AuthenticationError } from "../../utils/errors";
 
 export class UserService {
   async createUser(data: {
@@ -29,6 +29,59 @@ export class UserService {
 
   async findByEmail(email: string): Promise<IUser | null> {
     return await User.findOne({ email });
+  }
+
+  async findById(id: string): Promise<IUser | null> {
+    return await User.findById(id);
+  }
+
+  async updateProfile(
+    userId: string,
+    data: { name?: string; email?: string }
+  ): Promise<IUser> {
+    // Check if email is being updated and if it's already taken
+    if (data.email) {
+      const existingUser = await User.findOne({ email: data.email });
+      if (existingUser && existingUser._id.toString() !== userId) {
+        throw new ConflictError("Email already registered");
+      }
+    }
+
+    const user = await User.findByIdAndUpdate(userId, data, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+
+    return user;
+  }
+
+  async updatePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<IUser> {
+    // Find user with password field
+    const user = await User.findById(userId).select("+password");
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      throw new AuthenticationError("Current password is incorrect");
+    }
+
+    // Hash and update new password
+    const saltRounds = 10;
+    user.password = await bcrypt.hash(newPassword, saltRounds);
+    await user.save();
+
+    return user;
   }
 }
 

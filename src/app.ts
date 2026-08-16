@@ -13,6 +13,7 @@ import { requestLogger } from "./middleware/requestLogger.middleware";
 import { register } from "./utils/metrics";
 import { webhookRoutes } from "./features/webhooks/webhook.routes";
 import { orderRoutes } from "./features/orders/orders.routes";
+import userRoutes from "./features/users/users.routes";
 import { logger } from "./utils/logger";
 import path from "path";
 import { AppError } from "./utils/errors";
@@ -96,6 +97,7 @@ app.get("/metrics", async (req: Request, res: Response) => {
 // 5. Feature Routes
 app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/orders", orderRoutes);
 app.use("/api/v1/webhooks", webhookRoutes);
 

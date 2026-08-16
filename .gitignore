@@ -1,3 +1,35 @@
 ```
+# Build artifacts
+dist/
+build/
+*.js
+
+# Dependencies
 node_modules/
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Cache and temporary files
+.cache/
+.tmp/
+*.tmp
+
+# Logs
+*.log
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python specific (if applicable)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
 ```
