@@ -8,6 +8,12 @@ import {
   verifyRefreshToken,
 } from "../../utils/jwt";
 import { env } from "../../config/env";
+import {
+  BadRequestError,
+  ConflictError,
+  AuthenticationError,
+  TokenExpiredError,
+} from "../../utils/errors";
 
 export class AuthController {
   // POST /api/v1/auth/register
@@ -16,10 +22,7 @@ export class AuthController {
       const { name, email, password } = req.body;
 
       if (!name || !email || !password) {
-        return res.status(400).json({
-          success: false,
-          message: "Name, email, and password are required",
-        });
+        throw new BadRequestError("Name, email, and password are required");
       }
 
       const user = await userService.createUser({ name, email, password });
@@ -31,7 +34,7 @@ export class AuthController {
       });
     } catch (error: any) {
       if (error.message === "Email already registered") {
-        return res.status(409).json({ success: false, message: error.message });
+        throw new ConflictError("Email already registered");
       }
       next(error);
     }
@@ -43,28 +46,19 @@ export class AuthController {
       const { email, password } = req.body;
 
       if (!email || !password) {
-        return res.status(400).json({
-          success: false,
-          message: "Email and password are required",
-        });
+        throw new BadRequestError("Email and password are required");
       }
 
       // 1. Find user by email (include password for comparison)
       const user = await User.findOne({ email }).select("+password");
       if (!user) {
-        return res.status(401).json({
-          success: false,
-          message: "Invalid email or password",
-        });
+        throw new AuthenticationError("Invalid email or password");
       }
 
       // 2. Compare the plain-text password with the stored hash
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
-        return res.status(401).json({
-          success: false,
-          message: "Invalid email or password",
-        });
+        throw new AuthenticationError("Invalid email or password");
       }
 
       // 3. Generate tokens
@@ -115,10 +109,9 @@ export class AuthController {
       const refreshToken = req.cookies?.refreshToken;
 
       if (!refreshToken) {
-        return res.status(401).json({
-          success: false,
-          message: "No refresh token found. Please login again.",
-        });
+        throw new AuthenticationError(
+          "No refresh token found. Please login again."
+        );
       }
 
       // 2. Verify the refresh token
@@ -127,18 +120,16 @@ export class AuthController {
       // 3. Find the user and check if the stored refresh token matches
       const user = await User.findById(decoded.userId);
       if (!user || !user.refreshToken) {
-        return res.status(401).json({
-          success: false,
-          message: "Invalid refresh token. Please login again.",
-        });
+        throw new AuthenticationError(
+          "Invalid refresh token. Please login again."
+        );
       }
 
       const isValid = await bcrypt.compare(refreshToken, user.refreshToken);
       if (!isValid) {
-        return res.status(401).json({
-          success: false,
-          message: "Refresh token has been revoked. Please login again.",
-        });
+        throw new AuthenticationError(
+          "Refresh token has been revoked. Please login again."
+        );
       }
 
       // 4. Generate a NEW access token
@@ -154,10 +145,7 @@ export class AuthController {
       });
     } catch (error: any) {
       if (error.name === "TokenExpiredError") {
-        return res.status(401).json({
-          success: false,
-          message: "Refresh token expired. Please login again.",
-        });
+        throw new TokenExpiredError("Refresh token expired. Please login again.");
       }
       next(error);
     }

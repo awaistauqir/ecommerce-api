@@ -15,6 +15,8 @@ import { webhookRoutes } from "./features/webhooks/webhook.routes";
 import { orderRoutes } from "./features/orders/orders.routes";
 import { logger } from "./utils/logger";
 import path from "path";
+import { AppError } from "./utils/errors";
+import mongoose from "mongoose";
 
 const app = express();
 
@@ -119,6 +121,44 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     },
     "Unhandled Error",
   );
+
+  // Handle Mongoose validation errors
+  if (err instanceof mongoose.Error.ValidationError) {
+    const messages = Object.values(err.errors).map((e) => e.message).join(", ");
+    return res.status(422).json({
+      success: false,
+      message: messages,
+      code: "VALIDATION_ERROR",
+    });
+  }
+
+  // Handle Mongoose duplicate key errors
+  if ((err as any).code === 11000) {
+    const field = Object.keys((err as any).keyValue)[0];
+    return res.status(409).json({
+      success: false,
+      message: `${field} already exists`,
+      code: "DUPLICATE_KEY",
+    });
+  }
+
+  // Handle Mongoose cast errors (invalid ObjectId)
+  if (err instanceof mongoose.Error.CastError) {
+    return res.status(400).json({
+      success: false,
+      message: `Invalid ${err.path}: ${err.value}`,
+      code: "CAST_ERROR",
+    });
+  }
+
+  // Handle our custom AppError instances
+  if (err instanceof AppError) {
+    return res.status(err.statusCode).json({
+      success: false,
+      message: err.message,
+      code: err.code,
+    });
+  }
 
   // Determine the status code (default to 500)
   const statusCode = (err as any).statusCode || 500;

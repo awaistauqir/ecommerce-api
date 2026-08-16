@@ -3,6 +3,7 @@ import { env } from "../../config/env";
 import { Order, IOrder } from "./orders.model";
 import { Product } from "../products/products.model";
 import { logger } from "../../utils/logger";
+import { NotFoundError, PaymentError } from "../../utils/errors";
 
 // Initialize Stripe
 export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
@@ -23,7 +24,7 @@ export class OrderService {
     });
 
     if (products.length !== items.length) {
-      throw new Error("One or more products not found");
+      throw new NotFoundError("One or more products not found");
     }
 
     // 2. Build order items and calculate total
@@ -88,7 +89,7 @@ export class OrderService {
     const order = await Order.findOne({ stripeSessionId: sessionId });
 
     if (!order) {
-      throw new Error(`Order not found for session ${sessionId}`);
+      throw new NotFoundError(`Order not found for session ${sessionId}`);
     }
 
     // Idempotency check: Prevent processing the same webhook twice
