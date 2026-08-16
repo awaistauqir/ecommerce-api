@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import { User, IUser } from "./users.model";
+import { ConflictError } from "../../utils/errors";
 
 export class UserService {
   async createUser(data: {
@@ -10,7 +11,7 @@ export class UserService {
     // 1. Check if user already exists
     const existingUser = await User.findOne({ email: data.email });
     if (existingUser) {
-      throw new Error("Email already registered");
+      throw new ConflictError("Email already registered");
     }
 
     // 2. Hash the password (10 salt rounds is the industry standard)

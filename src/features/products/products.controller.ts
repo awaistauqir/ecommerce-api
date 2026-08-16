@@ -4,6 +4,7 @@ import { redis } from "../../config/redis";
 import { logger } from "../../utils/logger";
 import { parsePaginationQuery } from "../../utils/pagination";
 import cloudinary from "../../config/cloudinary";
+import { NotFoundError } from "../../utils/errors";
 
 export class ProductController {
   async createProduct(req: Request, res: Response, next: NextFunction) {
@@ -94,10 +95,7 @@ export class ProductController {
       const product = await productService.getProductBySlug(slug);
 
       if (!product) {
-        return res.status(404).json({
-          success: false,
-          message: "Product not found",
-        });
+        throw new NotFoundError("Product not found");
       }
 
       res.status(200).json({
@@ -141,10 +139,7 @@ export class ProductController {
       const product = await productService.updateProduct(id, updateData);
 
       if (!product) {
-        return res.status(404).json({
-          success: false,
-          message: "Product not found",
-        });
+        throw new NotFoundError("Product not found");
       }
 
       // Invalidate cache
@@ -167,10 +162,7 @@ export class ProductController {
       const deleted = await productService.deleteProduct(id);
 
       if (!deleted) {
-        return res.status(404).json({
-          success: false,
-          message: "Product not found",
-        });
+        throw new NotFoundError("Product not found");
       }
 
       // Invalidate cache

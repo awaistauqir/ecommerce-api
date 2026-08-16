@@ -3,6 +3,7 @@ import { orderService, stripe } from "./orders.service";
 import { env } from "../../config/env";
 import { logger } from "../../utils/logger";
 import { IOrder } from "./orders.model";
+import { BadRequestError, PaymentError } from "../../utils/errors";
 
 export class OrderController {
   // POST /api/v1/orders/checkout
@@ -12,10 +13,7 @@ export class OrderController {
       const { items } = req.body; // [{ productId, quantity }]
 
       if (!items || !Array.isArray(items) || items.length === 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Items array is required",
-        });
+        throw new BadRequestError("Items array is required");
       }
 
       const { order, sessionUrl } = await orderService.createCheckoutSession(
@@ -66,10 +64,7 @@ export class OrderController {
       );
     } catch (err: any) {
       logger.error({ err }, "❌ Webhook signature verification failed");
-      return res.status(400).json({
-        success: false,
-        message: `Webhook Error: ${err.message}`,
-      });
+      throw new BadRequestError(`Webhook Error: ${err.message}`);
     }
 
     logger.info(`📩 Received Stripe event: ${event.type}`);
