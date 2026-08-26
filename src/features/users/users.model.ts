@@ -6,6 +6,11 @@ export interface IUser extends Document {
   password: string;
   role: "customer" | "admin";
   refreshToken?: string; // NEW: Store the hashed refresh token
+  isEmailVerified: boolean;
+  emailVerificationToken?: string;
+  emailVerificationExpires?: Date;
+  passwordResetToken?: string;
+  passwordResetExpires?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,6 +29,11 @@ const userSchema = new Schema<IUser>(
     password: { type: String, required: true, minlength: 6 },
     role: { type: String, enum: ["customer", "admin"], default: "customer" },
     refreshToken: { type: String }, // NEW
+    isEmailVerified: { type: Boolean, default: false },
+    emailVerificationToken: { type: String },
+    emailVerificationExpires: { type: Date },
+    passwordResetToken: { type: String },
+    passwordResetExpires: { type: Date },
   },
   {
     timestamps: true,
@@ -31,6 +41,8 @@ const userSchema = new Schema<IUser>(
       transform(doc, ret) {
         delete (ret as any).password;
         delete (ret as any).refreshToken; // NEVER send this to the client
+        delete (ret as any).emailVerificationToken;
+        delete (ret as any).passwordResetToken;
         delete (ret as any).__v;
       },
     },
