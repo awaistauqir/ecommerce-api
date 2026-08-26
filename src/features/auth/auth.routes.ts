@@ -2,7 +2,7 @@ import { Router } from "express";
 import { authController } from "./auth.controller";
 import { validate } from "../../middleware/validate.middleware";
 import { authRateLimiter } from "../../middleware/ratelimit.middleware";
-import { loginSchema, registerSchema } from "./auth.schema";
+import { loginSchema, registerSchema, forgotPasswordSchema, resetPasswordSchema, resendVerificationSchema } from "./auth.schema";
 
 const router = Router();
 
@@ -109,5 +109,102 @@ router.post("/refresh", authController.refresh);
  *       401: { description: Invalid refresh token }
  */
 router.post("/logout", authController.logout);
+
+/**
+ * @swagger
+ * /api/v1/auth/verify-email:
+ *   get:
+ *     summary: Verify user's email address
+ *     tags: [Authentication]
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Email verification token
+ *     responses:
+ *       200: { description: Email verified successfully }
+ *       400: { description: Invalid or missing token }
+ */
+router.get("/verify-email", authController.verifyEmail);
+
+/**
+ * @swagger
+ * /api/v1/auth/resend-verification:
+ *   post:
+ *     summary: Resend email verification
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email: { type: string, format: email, example: "john@example.com" }
+ *     responses:
+ *       200: { description: Verification email sent }
+ *       404: { description: User not found }
+ */
+router.post(
+  "/resend-verification",
+  authRateLimiter,
+  validate(resendVerificationSchema),
+  authController.resendVerification,
+);
+
+/**
+ * @swagger
+ * /api/v1/auth/forgot-password:
+ *   post:
+ *     summary: Request password reset email
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email: { type: string, format: email, example: "john@example.com" }
+ *     responses:
+ *       200: { description: Password reset email sent (if account exists) }
+ */
+router.post(
+  "/forgot-password",
+  authRateLimiter,
+  validate(forgotPasswordSchema),
+  authController.forgotPassword,
+);
+
+/**
+ * @swagger
+ * /api/v1/auth/reset-password:
+ *   post:
+ *     summary: Reset password using token
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [token, password]
+ *             properties:
+ *               token: { type: string, example: "abc123..." }
+ *               password: { type: string, format: password, example: "newpassword123" }
+ *     responses:
+ *       200: { description: Password reset successfully }
+ *       400: { description: Invalid or expired token }
+ */
+router.post(
+  "/reset-password",
+  authRateLimiter,
+  validate(resetPasswordSchema),
+  authController.resetPassword,
+);
 
 export default router;
