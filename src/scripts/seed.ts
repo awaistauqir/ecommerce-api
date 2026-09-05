@@ -26,12 +26,14 @@ async function seedDatabase() {
         email: "admin@example.com",
         password: defaultPassword,
         role: "admin",
+        isEmailVerified: true, // Pre-verify admin for convenience
       },
       {
         name: "John Customer",
         email: "customer@example.com",
         password: defaultPassword,
         role: "customer",
+        isEmailVerified: true, // Pre-verify for testing convenience
       },
     ]);
     logger.info(

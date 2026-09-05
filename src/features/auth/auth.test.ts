@@ -1,8 +1,18 @@
-import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from "vitest";
 import request from "supertest";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
 import app from "../../app";
+import { User } from "../users/users.model";
+
+vi.mock("../../utils/email.service", () => {
+  return {
+    emailService: {
+      sendVerificationEmail: vi.fn().mockResolvedValue(undefined),
+      sendPasswordResetEmail: vi.fn().mockResolvedValue(undefined),
+    },
+  };
+});
 
 let mongoServer: MongoMemoryServer;
 
@@ -51,7 +61,10 @@ describe("Auth API Integration Tests", () => {
     // 1. Register first
     await request(app).post("/api/v1/auth/register").send(testUser);
 
-    // 2. Login
+    // 2. Verify email manually in DB
+    await User.updateOne({ email: testUser.email }, { isEmailVerified: true });
+
+    // 3. Login
     const res = await request(app)
       .post("/api/v1/auth/login")
       .send({ email: testUser.email, password: testUser.password });
@@ -63,6 +76,9 @@ describe("Auth API Integration Tests", () => {
 
   it("should fail login with wrong password", async () => {
     await request(app).post("/api/v1/auth/register").send(testUser);
+
+    // Verify email manually in DB
+    await User.updateOne({ email: testUser.email }, { isEmailVerified: true });
 
     const res = await request(app)
       .post("/api/v1/auth/login")
@@ -86,3 +102,4 @@ describe("Auth API Integration Tests", () => {
     expect(res.body.message).toContain("No token provided");
   });
 });
+

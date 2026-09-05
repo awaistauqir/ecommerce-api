@@ -3,6 +3,7 @@ import { verifyAccessToken, JwtPayload } from "../utils/jwt";
 
 // Extend Express Request to include our user data
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-empty-interface
   namespace Express {
     interface Request {
       user?: JwtPayload;

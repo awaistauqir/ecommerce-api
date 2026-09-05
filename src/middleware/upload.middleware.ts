@@ -5,7 +5,11 @@ import path from "path";
 const storage = multer.memoryStorage();
 
 // File filter (only allow images)
-const fileFilter = (req: any, file: any, cb: any) => {
+const fileFilter = (
+  req: Express.Request,
+  file: Express.Multer.File,
+  cb: multer.FileFilterCallback,
+) => {
   const allowedTypes = /jpeg|jpg|png|gif|webp/;
   const extname = allowedTypes.test(
     path.extname(file.originalname).toLowerCase(),

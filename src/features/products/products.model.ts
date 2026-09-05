@@ -1,4 +1,4 @@
-import { Schema, model, Document } from "mongoose";
+import { Schema, model, Document, Model } from "mongoose";
 
 export interface IProduct extends Document {
   name: string;
@@ -47,7 +47,7 @@ productSchema.pre("save", async function () {
   if (this.isModified("name") || !this.slug) {
     const { generateUniqueSlug } = await import("../../utils/slug.js");
     this.slug = await generateUniqueSlug(
-      this.constructor,
+      this.constructor as Model<IProduct>,
       this.name,
       this._id?.toString(),
     );

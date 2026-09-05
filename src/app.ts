@@ -112,8 +112,7 @@ app.use((req: Request, res: Response) => {
 
 // 7. Global Error Handler
 // Global Error Handler
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((err: Error, req: Request, res: Response) => {
   // Log the full error internally (for debugging)
   logger.error(
     {
@@ -127,7 +126,9 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
   // Handle Mongoose validation errors
   if (err instanceof mongoose.Error.ValidationError) {
-    const messages = Object.values(err.errors).map((e) => e.message).join(", ");
+    const messages = Object.values(err.errors)
+      .map((e) => e.message)
+      .join(", ");
     return res.status(422).json({
       success: false,
       message: messages,

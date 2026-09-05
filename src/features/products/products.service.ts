@@ -21,8 +21,7 @@ export class ProductService {
     query: PaginationQuery,
   ): Promise<PaginatedResult<IProduct>> {
     // Build filters from query
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const filters: any = {};
+    const filters: Record<string, any> = {};
 
     // Add category filter if provided
     if (query.filters?.category) {

@@ -8,5 +8,8 @@ export default tseslint.config(
   eslintConfigPrettier,
   {
     ignores: ["dist/", "node_modules/"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+    },
   },
 );

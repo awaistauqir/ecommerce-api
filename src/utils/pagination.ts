@@ -1,14 +1,14 @@
 import { Model, QueryFilter, SortOrder, Document } from "mongoose";
 
 // Pagination query parameters
-export interface PaginationQuery {
+export interface PaginationQuery<F = Record<string, any>> {
   page?: number;
   limit?: number;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
   search?: string;
   searchFields?: string[];
-  filters?: Record<string, any>;
+  filters?: F;
 }
 
 // Pagination metadata
@@ -51,9 +51,9 @@ export const DEFAULT_PAGINATION = {
  *   searchFields: ['name', 'description']
  * });
  */
-export async function paginate<T extends Document>(
+export async function paginate<T extends Document, F = Record<string, any>>(
   model: Model<T>,
-  query: PaginationQuery = {},
+  query: PaginationQuery<F> = {},
 ): Promise<PaginatedResult<T>> {
   const {
     page = DEFAULT_PAGINATION.page,
@@ -62,7 +62,7 @@ export async function paginate<T extends Document>(
     sortOrder = DEFAULT_PAGINATION.sortOrder,
     search,
     searchFields,
-    filters = {},
+    filters = {} as F,
   } = query;
 
   // Validate page and limit
@@ -73,7 +73,7 @@ export async function paginate<T extends Document>(
   const skip = (currentPage - 1) * itemsPerPage;
 
   // Build filter object
-  const filter: QueryFilter<T> = { ...filters };
+  const filter: QueryFilter<T> = { ...filters as any };
 
   // Add search functionality if provided
   if (search && searchFields && searchFields.length > 0) {
