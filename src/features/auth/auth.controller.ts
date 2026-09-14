@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { authService } from "./auth.service";
 import { env } from "../../config/env";
+import { ConflictError } from "../../utils/errors";
 
 export class AuthController {
   // POST /api/v1/auth/register
@@ -77,12 +78,7 @@ export class AuthController {
         success: true,
         data: { accessToken },
       });
-    } catch (error: any) {
-      if (error.name === "TokenExpiredError") {
-        throw new TokenExpiredError(
-          "Refresh token expired. Please login again.",
-        );
-      }
+    } catch (error) {
       next(error);
     }
   }
