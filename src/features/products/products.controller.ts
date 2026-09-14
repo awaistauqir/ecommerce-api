@@ -28,14 +28,14 @@ export class ProductController {
 
           // Stream the multer buffer to Cloudinary
           uploadStream.end(file.buffer);
-        })) as any;
+        })) as Record<string, unknown>;
 
         // Attach the secure (HTTPS) URL to the product data
-        productData.imageUrl = uploadResult.secure_url;
-        productData.images = [uploadResult.secure_url];
+        productData.imageUrl = (uploadResult as { secure_url?: string }).secure_url;
+        productData.images = [(uploadResult as { secure_url?: string }).secure_url];
 
         logger.info(
-          `☁️ Image uploaded to Cloudinary: ${uploadResult.secure_url}`,
+          `☁️ Image uploaded to Cloudinary: ${(uploadResult as { secure_url?: string }).secure_url}`,
         );
       }
 
@@ -124,15 +124,15 @@ export class ProductController {
             },
           );
           uploadStream.end(file.buffer);
-        })) as any;
+        })) as Record<string, unknown>;
 
-        updateData.imageUrl = uploadResult.secure_url;
+        updateData.imageUrl = (uploadResult as { secure_url?: string }).secure_url;
 
         // Optional: Append to images array or replace it. Here we replace for simplicity.
-        updateData.images = [uploadResult.secure_url];
+        updateData.images = [(uploadResult as { secure_url?: string }).secure_url];
 
         logger.info(
-          `☁️ New image uploaded to Cloudinary for update: ${uploadResult.secure_url}`,
+          `☁️ New image uploaded to Cloudinary for update: ${(uploadResult as { secure_url?: string }).secure_url}`,
         );
       }
 

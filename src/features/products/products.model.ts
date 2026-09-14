@@ -35,6 +35,7 @@ const productSchema = new Schema<IProduct>(
     timestamps: true,
     toJSON: {
       transform(doc, ret) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         delete (ret as any).__v;
       },
     },
