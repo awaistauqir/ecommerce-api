@@ -1,64 +1,37 @@
-```
 # Dependencies
 node_modules/
 
-# Build artifacts
+# Build outputs
 dist/
 build/
-target/
 
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.py.class
-venv/
-.venv/
+# Environment variables
 .env
 .env.local
-.env.*
 
 # Logs
 *.log
-
-# Coverage
-coverage/
-htmlcov/
-.coverage
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # IDE
-.vscode/
 .idea/
+.vscode/
 *.swp
 *.swo
-*.tmp
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Compressed
-*.zip
-*.gz
-*.tar
-*.tgz
-*.bz2
-*.xz
-*.7z
-*.rar
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
-*.deb
-*.Z
-*.lz
-*.lzo
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.tar.zst
-```
+# Testing
+coverage/
+.nyc_output/
+
+# Cache
+.cache/
+.parcel-cache/
+
+# MongoDB Memory Server cache
+mongodb-memory-server/
