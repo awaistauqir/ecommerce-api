@@ -24,6 +24,7 @@ const app = express();
 app.use("/api/v1/webhooks", express.raw({ type: "application/json" }));
 app.use((req: Request, res: Response, next: NextFunction) => {
   if (req.originalUrl.startsWith("/api/v1/webhooks")) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (req as any).rawBody = req.body;
   }
   next();
@@ -89,6 +90,7 @@ app.get("/metrics", async (req: Request, res: Response) => {
   try {
     res.set("Content-Type", register.contentType);
     res.end(await register.metrics());
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     res.status(500).end();
   }
@@ -110,6 +112,7 @@ app.use((req: Request, res: Response) => {
 
 // 7. Global Error Handler
 // Global Error Handler
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   // Log the full error internally (for debugging)
   logger.error(
@@ -133,7 +136,9 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   }
 
   // Handle Mongoose duplicate key errors
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if ((err as any).code === 11000) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const field = Object.keys((err as any).keyValue)[0];
     return res.status(409).json({
       success: false,
@@ -161,9 +166,11 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   }
 
   // Determine the status code (default to 500)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const statusCode = (err as any).statusCode || 500;
 
   // Build the response
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const errorResponse: any = {
     success: false,
     message: statusCode === 500 ? "Internal Server Error" : err.message,

@@ -3,7 +3,7 @@ import { env } from "../../config/env";
 import { Order, IOrder } from "./orders.model";
 import { Product } from "../products/products.model";
 import { logger } from "../../utils/logger";
-import { NotFoundError, PaymentError } from "../../utils/errors";
+import { NotFoundError } from "../../utils/errors";
 
 // Initialize Stripe
 export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {

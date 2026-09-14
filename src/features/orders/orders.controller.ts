@@ -2,8 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { orderService, stripe } from "./orders.service";
 import { env } from "../../config/env";
 import { logger } from "../../utils/logger";
-import { IOrder } from "./orders.model";
-import { BadRequestError, PaymentError } from "../../utils/errors";
+import { BadRequestError } from "../../utils/errors";
 
 export class OrderController {
   // POST /api/v1/orders/checkout
@@ -53,6 +52,7 @@ export class OrderController {
   // POST /api/v1/webhooks/stripe
   async handleStripeWebhook(req: Request, res: Response, next: NextFunction) {
     const sig = req.headers["stripe-signature"] as string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rawBody = (req as any).rawBody;
 
     let event;
@@ -62,9 +62,10 @@ export class OrderController {
         sig,
         env.STRIPE_WEBHOOK_SECRET,
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
       logger.error({ err }, "❌ Webhook signature verification failed");
-      throw new BadRequestError(`Webhook Error: ${err.message}`);
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      throw new BadRequestError(`Webhook Error: ${errorMessage}`);
     }
 
     logger.info(`📩 Received Stripe event: ${event.type}`);

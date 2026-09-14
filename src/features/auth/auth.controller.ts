@@ -50,8 +50,8 @@ export class AuthController {
           },
         },
       });
-    } catch (error: any) {
-      if (error.message === "Email already registered") {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.message === "Email already registered") {
         throw new ConflictError("Email already registered");
       }
       next(error);
@@ -167,8 +167,8 @@ export class AuthController {
         success: true,
         data: { accessToken: newAccessToken },
       });
-    } catch (error: any) {
-      if (error.name === "TokenExpiredError") {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === "TokenExpiredError") {
         throw new TokenExpiredError("Refresh token expired. Please login again.");
       }
       next(error);

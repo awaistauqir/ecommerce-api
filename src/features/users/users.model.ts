@@ -39,10 +39,15 @@ const userSchema = new Schema<IUser>(
     timestamps: true,
     toJSON: {
       transform(doc, ret) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         delete (ret as any).password;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         delete (ret as any).refreshToken; // NEVER send this to the client
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         delete (ret as any).emailVerificationToken;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         delete (ret as any).passwordResetToken;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         delete (ret as any).__v;
       },
     },
